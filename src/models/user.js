@@ -1,5 +1,7 @@
 const mongoose = require("mongoose");
-const validator = require("validator")
+const validator = require("validator");
+const jwt = require("jsonwebtoken")
+const bcrypt = require("bcrypt")
 
 const userSchema = mongoose.Schema(
   {
@@ -18,15 +20,20 @@ const userSchema = mongoose.Schema(
       unique: "true",
       lowercase: "true",
       trim: "true",
-      validate(value){
-        if(!validator.isEmail(value)){
-          throw new Error("Invalid email address " +value)
+      validate(value) {
+        if (!validator.isEmail(value)) {
+          throw new Error("Invalid email address " + value);
         }
-      }
+      },
     },
     password: {
       type: String,
       required: true,
+      validate(value){
+        if(!validator.isStrongPassword(value)){
+          throw new Error("Enter a strong password: " + value)
+        }
+      }
     },
     age: {
       type: Number,
@@ -34,11 +41,15 @@ const userSchema = mongoose.Schema(
     },
     gender: {
       type: String,
-      validate(value) {
-        if (!["male" || "female" || "others"].includes(value)) {
-          throw new Error("Gender data is not valid");
-        }
+      enum: {
+        values: ["male", "female", "others"],
+        message: `{VALUE} is not a valid gender type`,
       },
+      // validate(value) {
+      //   if (!["male" || "female" || "others"].includes(value)) {
+      //     throw new Error("Gender data is not valid");
+      //   }
+      // },
     },
     photoUrl: {
       type: String,
@@ -58,4 +69,25 @@ const userSchema = mongoose.Schema(
   }
 );
 
+userSchema.index({firstName: 1})
+userSchema.index({gender: 1})
+
+userSchema.methods.getJWT = async function(){
+  const user = this;
+
+  const tokekn = await JsonWebTokenError.sign({_id:user._id}, "DEV@Tinder$790", {
+    expiresIn: "7d",
+  })
+  return tokekn
+}
+
+userSchema.methods.validatePassword = async function (passwordInputByUser){
+  const user = this;
+  const passwordHash = user.password;
+  const isPasswordValid = await bcrypt.compare(
+    passwordInputByUser,
+    passwordHash
+  )
+  return isPasswordValid
+}
 module.exports = mongoose.model("User", userSchema);
