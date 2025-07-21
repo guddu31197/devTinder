@@ -1,7 +1,11 @@
 const express = require("express");
 const requestRouter = express.Router();
+
+
 const { userAuth } = require("../middlewares/auth.js");
 const ConnectionRequest = require("../models/connectionRequests");
+
+const User = require("../models/user");
 
 requestRouter.post(
   "/request/send/:status/:toUserId",
@@ -26,7 +30,6 @@ requestRouter.post(
         });
       }
 
-      // If there is an existing ConnectionRequest
       const existingConnectionRequest = await ConnectionRequest.findOne({
         $or: [
           { fromUserId, toUserId },
