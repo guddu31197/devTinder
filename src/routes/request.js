@@ -23,7 +23,7 @@ requestRouter.post(
           .json({ message: "Invalid status type: " + status });
       }
 
-      const toUser = await UserActivation.findById(toUserId);
+      const toUser = await User.findById(toUserId);
       if (!toUser) {
         return res.status(404).json({
           message: "User not found",

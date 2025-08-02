@@ -42,13 +42,14 @@ userRouter.get("/user/connections", userAuth, async (req, res) => {
       .populate("toUserId", USER_SAFE_DATA);
 
     const data = connectionRequests.map((row) => {
-      if (row.fromUserId._id.toString === loggedInUser._id.toString()) {
+      if (row.fromUserId._id.toString() === loggedInUser._id.toString()) {
         return row.toUserId;
       }
       return row.fromUserId;
     });
 
-    res.json({ connectionRequests });
+    // res.json({ connectionRequests });
+    res.json({ data: connectionRequests });
   } catch (err) {
     res.status(400).send({ message: err.message });
   }
@@ -74,13 +75,9 @@ userRouter.get("/feed", userAuth, async (req, res) => {
       hideUserFromFeed.add(req.toUserId.toString());
     });
 
-    const users = await user
-      .find({
-        $and: [
-          { _id: { $nin: Array.from(hideUserFromFeed) } },
-          { _id: { $ne: Array.from(hideUserFromFeed) } },
-        ],
-      })
+    const users = await User.find({
+      _id: { $nin: Array.from(hideUserFromFeed) },
+    })
       .select(USER_SAFE_DATA)
       .skip(skip)
       .limit(limit);
